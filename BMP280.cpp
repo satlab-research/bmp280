@@ -5,41 +5,39 @@
 #include "pico/binary_info.h"
 #include "pico/stdlib.h"
 
-
 BMP280::BMP280(i2c_inst_t *inst, int sda, int scl)
 {
     this->inst = inst;
     this->sda = sda;
     this->scl = scl;
 
-    i2c_init(this->inst, 100*1000); // 100 Khz.
+    i2c_init(this->inst, 100 * 1000); // 100 Khz.
 
     gpio_set_function(this->sda, GPIO_FUNC_I2C);
     gpio_set_function(this->scl, GPIO_FUNC_I2C);
     gpio_pull_up(this->sda);
     gpio_pull_up(this->scl);
-
 }
 
 BMP280::~BMP280()
 {
 }
 
-        // Temperature calibration parameters
-        uint16_t BMP280::dig_t1 = 0;
-        int16_t BMP280::dig_t2 = 0;
-        int16_t BMP280::dig_t3 = 0;
+// Temperature calibration parameters
+uint16_t BMP280::dig_t1 = 0;
+int16_t BMP280::dig_t2 = 0;
+int16_t BMP280::dig_t3 = 0;
 
-        // Pressure calibration parameters
-        uint16_t BMP280::dig_p1 = 0;
-        int16_t BMP280::dig_p2 = 0;
-        int16_t BMP280::dig_p3 = 0;
-        int16_t BMP280::dig_p4 = 0;
-        int16_t BMP280::dig_p5 = 0;
-        int16_t BMP280::dig_p6 = 0;
-        int16_t BMP280::dig_p7 = 0;
-        int16_t BMP280::dig_p8 = 0;
-        int16_t BMP280::dig_p9 = 0;
+// Pressure calibration parameters
+uint16_t BMP280::dig_p1 = 0;
+int16_t BMP280::dig_p2 = 0;
+int16_t BMP280::dig_p3 = 0;
+int16_t BMP280::dig_p4 = 0;
+int16_t BMP280::dig_p5 = 0;
+int16_t BMP280::dig_p6 = 0;
+int16_t BMP280::dig_p7 = 0;
+int16_t BMP280::dig_p8 = 0;
+int16_t BMP280::dig_p9 = 0;
 
 bool BMP280::init()
 {
@@ -69,7 +67,7 @@ bool BMP280::init()
     i2c_write_blocking(inst, ADDR, cBuf, 1, false);
     i2c_read_blocking(inst, ADDR, chip_val, 1, false);
 
-    if( chip_val[0] == WHO_AM_I )
+    if (chip_val[0] == WHO_AM_I)
     {
         return true;
     }
@@ -79,7 +77,6 @@ bool BMP280::init()
         reset();
         return false;
     }
-
 }
 
 void BMP280::get_raw()
@@ -90,7 +87,7 @@ void BMP280::get_raw()
 
     uint8_t buf[6];
     uint8_t reg = REG_PRESSURE_MSB;
-    i2c_write_blocking(inst, ADDR, &reg, 1, true);  // true to keep master control of bus
+    i2c_write_blocking(inst, ADDR, &reg, 1, true); // true to keep master control of bus
     i2c_read_blocking(inst, ADDR, buf, 6, false);  // false - finished with bus
 
     // store the 20 bit read in a 32 bit signed integer for conversion
@@ -101,7 +98,7 @@ void BMP280::get_raw()
 void BMP280::reset()
 {
     // reset the device with the power-on-reset procedure
-    uint8_t buf[2] = { REG_RESET, 0xB6 };
+    uint8_t buf[2] = {REG_RESET, 0xB6};
     i2c_write_blocking(inst, ADDR, buf, 2, false);
 }
 
@@ -109,21 +106,22 @@ int32_t BMP280::convert(int32_t temp)
 {
     // use the 32-bit fixed point compensation implementation given in the
     // datasheet
-    
+
     int32_t var1, var2;
     var1 = ((((temp >> 3) - ((int32_t)dig_t1 << 1))) * ((int32_t)dig_t2)) >> 11;
     var2 = (((((temp >> 4) - ((int32_t)dig_t1)) * ((temp >> 4) - ((int32_t)dig_t1))) >> 12) * ((int32_t)dig_t3)) >> 14;
     return var1 + var2;
-    
 }
 
-float BMP280::get_temperature() {
+float BMP280::get_temperature()
+{
     // uses the BMP280 calibration parameters to compensate the temperature value read from its registers
     int32_t t_fine = this->convert(this->raw_temperature);
-    return ((t_fine * 5 + 128) >> 8)/100.f;
+    return ((t_fine * 5 + 128) >> 8) / 100.f;
 }
 
-int32_t BMP280::get_pressure() {
+int32_t BMP280::get_pressure()
+{
     // uses the BMP280 calibration parameters to compensate the pressure value read from its registers
 
     int32_t t_fine = this->convert(this->raw_temperature);
@@ -136,13 +134,17 @@ int32_t BMP280::get_pressure() {
     var2 = (var2 >> 2) + (((int32_t)dig_p4) << 16);
     var1 = (((dig_p3 * (((var1 >> 2) * (var1 >> 2)) >> 13)) >> 3) + ((((int32_t)dig_p2) * var1) >> 1)) >> 18;
     var1 = ((((32768 + var1)) * ((int32_t)dig_p1)) >> 15);
-    if (var1 == 0) {
-        return 0;  // avoid exception caused by division by zero
+    if (var1 == 0)
+    {
+        return 0; // avoid exception caused by division by zero
     }
     converted = (((uint32_t)(((int32_t)1048576) - this->raw_pressure) - (var2 >> 12))) * 3125;
-    if (converted < 0x80000000) {
+    if (converted < 0x80000000)
+    {
         converted = (converted << 1) / ((uint32_t)var1);
-    } else {
+    }
+    else
+    {
         converted = (converted / (uint32_t)var1) * 2;
     }
     var1 = (((int32_t)dig_p9) * ((int32_t)(((converted >> 3) * (converted >> 3)) >> 13))) >> 12;
@@ -151,18 +153,18 @@ int32_t BMP280::get_pressure() {
     return converted;
 }
 
-
-void BMP280::get_calib_params() {
+void BMP280::get_calib_params()
+{
     // raw temp and pressure values need to be calibrated according to
     // parameters generated during the manufacturing of the sensor
     // there are 3 temperature params, and 9 pressure params, each with a LSB
     // and MSB register, so we read from 24 registers
 
-    uint8_t buf[NUM_CALIB_PARAMS] = { 0 };
+    uint8_t buf[NUM_CALIB_PARAMS] = {0};
     uint8_t reg = REG_DIG_T1_LSB;
-    i2c_write_blocking(inst, ADDR, &reg, 1, true);  // true to keep master control of bus
+    i2c_write_blocking(inst, ADDR, &reg, 1, true); // true to keep master control of bus
     // read in one go as register addresses auto-increment
-    i2c_read_blocking(inst, ADDR, buf, NUM_CALIB_PARAMS, false);  // false, we're done reading
+    i2c_read_blocking(inst, ADDR, buf, NUM_CALIB_PARAMS, false); // false, we're done reading
 
     // store these in a struct for later use
     dig_t1 = (uint16_t)(buf[1] << 8) | buf[0];
@@ -178,6 +180,4 @@ void BMP280::get_calib_params() {
     dig_p7 = (int16_t)(buf[19] << 8) | buf[18];
     dig_p8 = (int16_t)(buf[21] << 8) | buf[20];
     dig_p9 = (int16_t)(buf[23] << 8) | buf[22];
-
-    
 }
