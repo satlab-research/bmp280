@@ -1,11 +1,13 @@
 #ifndef BMP280_H
 #define BMP280_H
 
+
 #include <stdio.h>
 
 #include "hardware/i2c.h"
 #include "pico/binary_info.h"
 #include "pico/stdlib.h"
+
 
 // device has default bus address of 0x76
 #define ADDR _u(0x76)
@@ -57,53 +59,58 @@
 
 class BMP280
 {
-private:
-    // Private Variables or Functions
+    private:
+        // Private Variables or Functions
 
-    // Temperature calibration parameters
-    static uint16_t dig_t1;
-    static int16_t dig_t2;
-    static int16_t dig_t3;
+        // Temperature calibration parameters
+        static uint16_t dig_t1;
+        static int16_t dig_t2;
+        static int16_t dig_t3;
 
-    // Pressure calibration parameters
-    static uint16_t dig_p1;
-    static int16_t dig_p2;
-    static int16_t dig_p3;
-    static int16_t dig_p4;
-    static int16_t dig_p5;
-    static int16_t dig_p6;
-    static int16_t dig_p7;
-    static int16_t dig_p8;
-    static int16_t dig_p9;
+        // Pressure calibration parameters
+        static uint16_t dig_p1;
+        static int16_t dig_p2;
+        static int16_t dig_p3;
+        static int16_t dig_p4;
+        static int16_t dig_p5;
+        static int16_t dig_p6;
+        static int16_t dig_p7;
+        static int16_t dig_p8;
+        static int16_t dig_p9;
 
-    // Initialization data
-    // uint8_t ;
+        // Initialization data
+        // uint8_t ;
 
-    // I2C initialization parameters
-    i2c_inst_t *inst;
-    int scl;
-    int sda;
+        // I2C initialization parameters
+        i2c_inst_t* inst;
+        int scl;
+        int sda;
 
-    int32_t raw_temperature;
-    int32_t raw_pressure;
+        int32_t raw_temperature;
+        int32_t raw_pressure;
 
-    int32_t convert(int32_t temp); // private
+        int32_t convert(int32_t temp); // private
 
-    void get_calib_params();
+        void get_calib_params();
 
-public:
-    bool init();
 
-    void reset();
+    public:
+        bool init();
+        
+        void reset();
 
-    void get_raw();
+        void get_raw();
 
-    float get_temperature(); // get_temp
+        float get_temperature(); // get_temp
 
-    int32_t get_pressure(); // get_press, remove temp
+        int32_t get_pressure(); // get_press, remove temp
 
-    BMP280(i2c_inst_t *inst, int sda, int scl);
-    ~BMP280();
+        BMP280(i2c_inst_t *inst, int sda, int scl);
+        ~BMP280();
+
 };
+
+
+
 
 #endif
