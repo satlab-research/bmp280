@@ -82,9 +82,9 @@ class BMP280
         // uint8_t ;
 
         // I2C initialization parameters
-        i2c_inst_t* inst;
-        int scl;
-        int sda;
+        i2c_inst_t* inst = i2c0;
+        int scl = 8;
+        int sda = 9;
 
         int32_t raw_temperature;
         int32_t raw_pressure;
@@ -105,7 +105,7 @@ class BMP280
 
         int32_t get_pressure(); // get_press, remove temp
 
-        BMP280(i2c_inst_t *inst, int sda, int scl);
+        BMP280(/*i2c_inst_t *inst, int sda, int scl*/);
         ~BMP280();
 
 };

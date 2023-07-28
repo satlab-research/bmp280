@@ -6,11 +6,11 @@
 #include "pico/stdlib.h"
 
 
-BMP280::BMP280(i2c_inst_t *inst, int sda, int scl)
+BMP280::BMP280(/*i2c_inst_t *inst, int sda, int scl*/)
 {
-    this->inst = inst;
-    this->sda = sda;
-    this->scl = scl;
+    // this->inst = inst;
+    // this->sda = sda;
+    // this->scl = scl;
 
     i2c_init(this->inst, 100*1000); // 100 Khz.
 
